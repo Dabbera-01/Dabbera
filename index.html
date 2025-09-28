@@ -2,13 +2,46 @@
 <html lang="en">
 <head>
   <!-- Animated Favicon -->
-<link rel="icon" type="image/gif" href="favicon.gif">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dabbera</title>
-<link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/gif" href="favicon.gif">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dabbera</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<!-- BLINKING DISCLAIMER -->
+<div id="desktopDisclaimer">
+  ⚠️ In order to enjoy Dabbera fully, please tick "Desktop Site" in your browser settings if using mobile! ⚠️
+</div>
+
+<style>
+  #desktopDisclaimer {
+    position: fixed;
+    top: 5px; 
+    left: 50%;
+    transform: translateX(-50%);
+    color: red;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    z-index: 9999;
+    animation: blink 1s infinite;
+    padding: 2px 5px;
+  }
+
+  @keyframes blink {
+    0%, 50%, 100% {opacity: 1;}
+    25%, 75% {opacity: 0;}
+  }
+
+  /* Responsive smaller text for tiny phones */
+  @media (max-width: 400px) {
+    #desktopDisclaimer {
+      font-size: 12px;
+    }
+  }
+</style>
 
 
 <!-- Floating Circles -->
@@ -21,13 +54,13 @@
   <h1>🍎 Welcome to Dabbera 🍎</h1>
   <button class="main-btn" onclick="scrollToGames()">▶️ Play Games</button>
 
- <!-- Account Icon Top Right -->
-<div id="accountIcon" style="position:absolute; top:20px; right:20px; z-index:3;">
-  <a href="account.html">
-    <img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" width="40" alt="Account">
-  </a>
-</div>
-
+  <!-- Account Icon Top Right -->
+  <div id="accountIcon" style="position:absolute; top:20px; right:20px; z-index:3;">
+    <a href="account.html">
+      <img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" width="40" alt="Account">
+    </a>
+  </div>
+</header>
 
 <section class="game-area" id="games">
   <div class="game-box">
@@ -64,3 +97,5 @@
   </div>
 </footer>
 
+</body>
+</html>
