@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dabbera Pong - Dabbera</title>
+<style>
+body {
+  margin:0;
+  font-family:'Arial Black',sans-serif;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  background: linear-gradient(135deg, #1e90ff, #ff4757);
+  color:white;
+  overflow:hidden;
+}
+canvas {
+  border:3px solid white;
+  border-radius:15px;
+  box-shadow:0 0 20px #ff416c,0 0 40px #1e90ff;
+  background: black;
+}
+button {
+  margin-top:15px;
+  padding:12px 25px;
+  border:none;
+  border-radius:10px;
+  background:#00c6ff;
+  color:white;
+  font-size:18px;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+<h1>Dabbera Pong🏓</h1>
+<canvas id="pongCanvas" width="600" height="400"></canvas>
+<button onclick="location.href='index.html'">⬅️ Back to Hub</button>
+
+<script>
+const canvas = document.getElementById('pongCanvas');
+const ctx = canvas.getContext('2d');
+
+// ======= PADDLES =======
+const paddleWidth = 10, paddleHeight = 80;
+let playerPaddle = {x:10, y:canvas.height/2 - paddleHeight/2, vy:0};
+let aiPaddle = {x:canvas.width-20, y:canvas.height/2 - paddleHeight/2, speed:3};
+
+// ======= BALL =======
+let ball = {x: canvas.width/2, y: canvas.height/2, vx:5, vy:5, radius:10};
+let hitPlayer=false, hitAI=false;
+
+// ======= SCORE =======
+let score=0;
+
+// ======= USERS =======
+let users = JSON.parse(localStorage.getItem('users')) || {};
+let currentUser = localStorage.getItem('currentUser');
+
+// ======= CONTROLS =======
+// Keyboard
+document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowUp') playerPaddle.vy=-5;
+    if(e.key==='ArrowDown') playerPaddle.vy=5;
+});
+document.addEventListener('keyup', e=>{
+    if(['ArrowUp','ArrowDown'].includes(e.key)) playerPaddle.vy=0;
+});
+
+// Touch Controls
+canvas.addEventListener('touchstart', e=>{
+  const touchY = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+  if(touchY < playerPaddle.y + paddleHeight/2) playerPaddle.vy = -5;
+  else playerPaddle.vy = 5;
+  e.preventDefault();
+});
+canvas.addEventListener('touchmove', e=>{
+  const touchY = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+  playerPaddle.y = touchY - paddleHeight/2;
+  if(playerPaddle.y < 0) playerPaddle.y=0;
+  if(playerPaddle.y + paddleHeight > canvas.height) playerPaddle.y = canvas.height - paddleHeight;
+  e.preventDefault();
+});
+canvas.addEventListener('touchend', e=>{
+  playerPaddle.vy = 0;
+  e.preventDefault();
+});
+
+// ======= GAME LOOP =======
+function update(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Move player paddle
+  playerPaddle.y += playerPaddle.vy;
+  if(playerPaddle.y<0) playerPaddle.y=0;
+  if(playerPaddle.y+paddleHeight>canvas.height) playerPaddle.y=canvas.height-paddleHeight;
+
+  // Move AI paddle
+  if(ball.y > aiPaddle.y + paddleHeight/2) aiPaddle.y += aiPaddle.speed;
+  if(ball.y < aiPaddle.y + paddleHeight/2) aiPaddle.y -= aiPaddle.speed;
+  if(aiPaddle.y<0) aiPaddle.y=0;
+  if(aiPaddle.y+paddleHeight>canvas.height) aiPaddle.y=canvas.height-paddleHeight;
+
+  // Draw paddles
+  ctx.fillStyle='white';
+  ctx.fillRect(playerPaddle.x,playerPaddle.y,paddleWidth,paddleHeight);
+  ctx.fillRect(aiPaddle.x,aiPaddle.y,paddleWidth,paddleHeight);
+
+  // Move ball
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  // Ball collision top/bottom
+  if(ball.y-ball.radius<0 || ball.y+ball.radius>canvas.height) ball.vy*=-1;
+
+  // Player paddle collision
+  if(ball.x-ball.radius < playerPaddle.x+paddleWidth &&
+     ball.y>playerPaddle.y && ball.y<playerPaddle.y+paddleHeight){
+    if(!hitPlayer){
+      ball.vx*=-1;
+      score++;
+      hitPlayer=true;
+      updateUserScore();
+    }
+  } else hitPlayer=false;
+
+  // AI paddle collision
+  if(ball.x+ball.radius > aiPaddle.x &&
+     ball.y>aiPaddle.y && ball.y<aiPaddle.y+paddleHeight){
+    if(!hitAI){
+      ball.vx*=-1;
+      hitAI=true;
+    }
+  } else hitAI=false;
+
+  // Draw ball
+  ctx.fillStyle='white';
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.radius,0,Math.PI*2);
+  ctx.fill();
+
+  // Draw score
+  ctx.font='24px Arial Black';
+  ctx.fillText('Score: '+score, canvas.width/2 - 40, 30);
+
+  // Reset if ball goes off screen
+  if(ball.x-ball.radius<0 || ball.x+ball.radius>canvas.width){
+    ball.x=canvas.width/2; ball.y=canvas.height/2;
+    ball.vx=5*(Math.random()>0.5?1:-1);
+    ball.vy=5*(Math.random()>0.5?1:-1);
+  }
+
+  requestAnimationFrame(update);
+}
+
+// ======= UPDATE ACCOUNT SCORE =======
+function updateUserScore(){
+  if(currentUser && users[currentUser]){
+    if(score>users[currentUser].scores.pong){
+      users[currentUser].scores.pong = score;
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+  }
+}
+
+update();
+</script>
+
+<script>
+(function() {
+  const faviconURL = 'favicon.gif'; // your animated GIF
+  let link = document.querySelector("link[rel~='icon']");
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+
+  // For animated effect using a tiny trick (works in most browsers)
+  let i = 0;
+  const frames = 30; // total frames your GIF has, approx
+  setInterval(() => {
+    link.href = faviconURL + '?frame=' + i;
+    i = (i + 1) % frames;
+  }, 100); // change frame every 100ms
+})();
+</script>
+
+<div id="musicPlayer" style="position:fixed;bottom:10px;right:10px;z-index:9999;">
+  <button onclick="togglePlayer()">🎵</button>
+  <iframe id="spotifyIframe" 
+      style="border-radius:12px;margin-top:5px;" 
+      src="https://open.spotify.com/embed/playlist/0PMKjSoU937cvzkHpFJ3hf?utm_source=generator&theme=0" 
+      width="300" height="80" frameborder="0" allow="encrypted-media">
+  </iframe>
+</div>
+
+<script>
+function togglePlayer(){
+  const iframe = document.getElementById('spotifyIframe');
+  iframe.style.display = (iframe.style.display==='none') ? 'block':'none';
+}
+</script>
+
+
+</body>
+</html>

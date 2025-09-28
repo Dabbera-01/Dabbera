@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account Center - Fun Zone</title>
+<style>
+/* GENERAL */
+body {
+  margin:0;
+  font-family:'Arial Black',sans-serif;
+  display:flex;
+  min-height:100vh;
+  background: linear-gradient(135deg, #1e90ff, #ff4757);
+  color:white;
+  transition: all 0.3s ease;
+  overflow:hidden;
+}
+
+/* BACK LINK */
+#backHub {
+  position:fixed;
+  top:20px;
+  left:20px;
+  color:black;
+  font-weight:bold;
+  font-size:20px;
+  text-decoration:none;
+  z-index:10;
+  cursor:pointer;
+}
+
+/* SIDEBAR */
+#sidebar {
+  width:220px;
+  background: rgba(0,0,0,0.3);
+  padding:80px 20px 20px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  min-height:100vh;
+}
+#sidebar h2 {
+  margin-bottom:10px;
+  font-size:16px;
+  text-shadow:0 0 5px #000;
+  text-align:center;
+}
+
+/* TABS */
+.tab {
+  cursor:pointer;
+  padding:8px;
+  border-radius:8px;
+  transition: background 0.2s;
+}
+.tab:hover, .tab.active {
+  background:rgba(255,255,255,0.2);
+}
+
+/* MAIN AREA */
+#mainArea {
+  flex:1;
+  padding:40px;
+}
+
+/* ACCOUNT NAME DISPLAY */
+#accountNameDisplay {
+  font-size:20px;
+  font-weight:bold;
+  margin-bottom:20px;
+  background: rgba(255,255,255,0.1);
+  padding:5px 10px;
+  border-radius:8px;
+  display:inline-block;
+}
+
+/* INPUTS */
+input[type="password"], input[type="text"] {
+  width:300px;
+  padding:8px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.4);
+  background:rgba(255,255,255,0.1);
+  color:white;
+}
+
+/* BUTTONS */
+button {
+  cursor:pointer;
+  padding:10px 15px;
+  border:none;
+  border-radius:8px;
+}
+#deleteBtn {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:#ff3b3b;
+  color:white;
+  font-weight:bold;
+  margin-top:10px;
+  width:fit-content;
+}
+#deleteBtn svg { width:20px; height:20px; fill:white; }
+#deleteDisclaimer {
+  font-size:12px;
+  color:#ffaaaa;
+  margin-top:5px;
+  max-width:300px;
+}
+
+/* SCORE CARD */
+.scoreCard {
+  background:rgba(255,255,255,0.2);
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:5px;
+  width:fit-content;
+}
+
+/* MODAL */
+#authModal {
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.8);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:20;
+}
+#authContent {
+  background:rgba(255,255,255,0.05);
+  padding:30px;
+  border-radius:15px;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+  min-width:300px;
+}
+#authContent h2 { margin:0; text-align:center;}
+#authContent input {
+  width:100%;
+}
+#authTabs { display:flex; gap:10px; justify-content:center; margin-bottom:10px;}
+#authTabs div { padding:5px 10px; cursor:pointer; border-radius:5px; }
+#authTabs .active { background:rgba(255,255,255,0.2); font-weight:bold;}
+#authMsg { text-align:center; font-weight:bold; margin-top:5px;}
+</style>
+</head>
+<body>
+
+<a id="backHub" href="index.html">&lt; Back</a>
+
+<div id="sidebar" style="display:none;">
+  <h2>ACCOUNT CENTER</h2>
+  <div class="tab active" data-tab="account">Account Settings</div>
+  <div class="tab" data-tab="scores">Scores</div>
+  <div class="tab" data-tab="logout">Logout</div>
+</div>
+
+<div id="mainArea"></div>
+
+<!-- AUTH MODAL -->
+<div id="authModal">
+  <div id="authContent">
+    <div id="authTabs">
+      <div id="tabLogin" class="active">Login</div>
+      <div id="tabSignup">Sign Up</div>
+    </div>
+    <div id="authForm">
+      <input type="text" id="authUsername" placeholder="Username">
+      <input type="password" id="authPassword" placeholder="Password">
+      <button id="authBtn">Login</button>
+      <div id="authMsg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ======= USERS & LOGIN =======
+let users = JSON.parse(localStorage.getItem('users')) || {};
+let currentUser = localStorage.getItem('currentUser');
+
+const authModal = document.getElementById('authModal');
+const sidebar = document.getElementById('sidebar');
+const mainArea = document.getElementById('mainArea');
+const authTabs = document.querySelectorAll('#authTabs div');
+const authBtn = document.getElementById('authBtn');
+const authMsg = document.getElementById('authMsg');
+const authUsername = document.getElementById('authUsername');
+const authPassword = document.getElementById('authPassword');
+
+let authMode = "login"; // login or signup
+
+// Switch login/signup tabs
+authTabs.forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    authTabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    authMode = tab.id==='tabLogin'?'login':'signup';
+    authBtn.textContent = authMode==='login'?'Login':'Sign Up';
+    authMsg.textContent='';
+  });
+});
+
+// AUTH BUTTON CLICK
+authBtn.addEventListener('click', ()=>{
+  const user = authUsername.value.trim();
+  const pass = authPassword.value.trim();
+  if(!user || !pass){ authMsg.textContent="Fill all fields"; authMsg.style.color="red"; return;}
+  if(authMode==='signup'){
+    if(users[user]){ authMsg.textContent="Username exists"; authMsg.style.color="red"; return;}
+    users[user] = {password:pass, scores:{flappy:0,snake:0,dino:0,pong:0}};
+    localStorage.setItem('users', JSON.stringify(users));
+    localStorage.setItem('currentUser', user);
+    currentUser = user;
+    authModal.style.display='none';
+    initAccountPage();
+  } else { // login
+    if(!users[user] || users[user].password!==pass){ authMsg.textContent="Invalid login"; authMsg.style.color="red"; return;}
+    localStorage.setItem('currentUser', user);
+    currentUser = user;
+    authModal.style.display='none';
+    initAccountPage();
+  }
+});
+
+// ======= INIT ACCOUNT PAGE =======
+function initAccountPage(){
+  sidebar.style.display='flex';
+  showTab('account');
+}
+
+// ======= TABS FUNCTIONALITY =======
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    tabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    showTab(tab.dataset.tab);
+  });
+});
+
+function showTab(tab){
+  if(tab==='account'){
+    mainArea.innerHTML = `
+      <h2>Account Settings</h2>
+      <div id="accountNameDisplay">Account Name: ${currentUser}</div>
+
+      <h3>Change Password</h3>
+      <input type="password" id="newPass" placeholder="New Password">
+      <input type="password" id="confirmPass" placeholder="Confirm New Password">
+      <button id="changePassBtn">Update Password</button>
+      <div id="passMsg" style="color:red;font-weight:bold;margin-top:5px;"></div>
+
+      <button id="deleteBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7L141.6 0h164.8l6.4 17.7 16 48H399c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H49c-8.8 0-16-7.2-16-16V81c0-8.8 7.2-16 16-16h90.8l16-48zM48 128h352l-21.2 339.3c-1.3 21.4-19.1 37.7-40.5 37.7H109.7c-21.4 0-39.2-16.3-40.5-37.7L48 128z"/></svg>
+        Delete Account
+      </button>
+      <div id="deleteDisclaimer">Deleting your account is permanent and cannot be undone.</div>
+    `;
+    setupAccountTab();
+  } else if(tab==='scores'){
+    const userScores = users[currentUser].scores || {flappy:0,snake:0,dino:0,pong:0};
+    mainArea.innerHTML = `
+      <h2>Scores</h2>
+      <div class="scoreCard">Flappy: ${userScores.flappy}</div>
+      <div class="scoreCard">Snake: ${userScores.snake}</div>
+      <div class="scoreCard">Dino: ${userScores.dino}</div>
+      <div class="scoreCard">Pong: ${userScores.pong}</div>
+    `;
+  } else if(tab==='logout'){
+    if(confirm("Are you sure you want to logout?")){
+      localStorage.removeItem('currentUser');
+      location.reload();
+    }
+  }
+}
+
+// ======= ACCOUNT TAB SETUP =======
+function setupAccountTab(){
+  // Change password
+  document.getElementById('changePassBtn').addEventListener('click', ()=>{
+    const newPass = document.getElementById('newPass').value.trim();
+    const confirmPass = document.getElementById('confirmPass').value.trim();
+    const msg = document.getElementById('passMsg');
+    if(!newPass || !confirmPass){ msg.textContent="Fill all fields"; msg.style.color="red"; return;}
+    if(newPass !== confirmPass){ msg.textContent="Passwords do not match"; msg.style.color="red"; return;}
+    users[currentUser].password = newPass;
+    localStorage.setItem('users', JSON.stringify(users));
+    msg.style.color="green";
+    msg.textContent="Password updated!";
+    document.getElementById('newPass').value='';
+    document.getElementById('confirmPass').value='';
+  });
+
+  // Delete account
+  document.getElementById('deleteBtn').addEventListener('click', ()=>{
+    if(confirm("Are you sure you want to delete your account?")){
+      delete users[currentUser];
+      localStorage.setItem('users', JSON.stringify(users));
+      localStorage.removeItem('currentUser');
+      authModal.style.display='flex';
+      sidebar.style.display='none';
+      mainArea.innerHTML='';
+    }
+  });
+}
+
+// ======= INITIAL LOAD =======
+if(currentUser && users[currentUser]) authModal.style.display='none', initAccountPage();
+</script>
+
+<script>
+(function() {
+  const faviconURL = 'favicon.gif'; // your animated GIF
+  let link = document.querySelector("link[rel~='icon']");
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+
+  // For animated effect using a tiny trick (works in most browsers)
+  let i = 0;
+  const frames = 30; // total frames your GIF has, approx
+  setInterval(() => {
+    link.href = faviconURL + '?frame=' + i;
+    i = (i + 1) % frames;
+  }, 100); // change frame every 100ms
+})();
+</script>
+
+
+</body>
+</html>

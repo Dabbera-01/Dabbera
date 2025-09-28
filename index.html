@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Animated Favicon -->
+<link rel="icon" type="image/gif" href="favicon.gif">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dabbera</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<!-- Floating Circles -->
+<div class="circle"></div>
+<div class="circle"></div>
+<div class="circle"></div>
+<div class="circle"></div>
+
+<header>
+  <h1>🍎 Welcome to Dabbera 🍎</h1>
+  <button class="main-btn" onclick="scrollToGames()">▶️ Play Games</button>
+
+ <!-- Account Icon Top Right -->
+<div id="accountIcon" style="position:absolute; top:20px; right:20px; z-index:3;">
+  <a href="account.html">
+    <img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" width="40" alt="Account">
+  </a>
+</div>
+
+
+<section class="game-area" id="games">
+  <div class="game-box">
+    <h2>🍎 Dabba Flappy</h2>
+    <button class="play-btn" onclick="location.href='flappy.html'">Play</button>
+  </div>
+  <div class="game-box">
+    <h2>🍎 Dabba Snake</h2>
+    <button class="play-btn" onclick="location.href='snake.html'">Play</button>
+  </div>
+  <div class="game-box">
+    <h2>🍎 Dabba Run</h2>
+    <button class="play-btn" onclick="location.href='dino.html'">Play</button>
+  </div>
+  <div class="game-box">
+    <h2>🍎 Dabbera Pong</h2>
+    <button class="play-btn" onclick="location.href='pong.html'">Play</button>
+  </div>
+</section>
+
+<footer>
+  <h2>🍎 Dabbera Suggested Songs 🍎</h2>
+  <iframe style="border-radius:12px" 
+    src="https://open.spotify.com/embed/playlist/0PMKjSoU937cvzkHpFJ3hf?utm_source=generator&theme=0" 
+    width="80%" height="380" frameBorder="0" allowfullscreen="" 
+    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+  <div class="equalizer">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+  </div>
+</footer>
+
